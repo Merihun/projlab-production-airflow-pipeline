@@ -1,0 +1,77 @@
+# Production Airflow Pipeline: the lab you start from.
+#
+# These three services are the world around the pipeline. They are provided; leave them as they are.
+#   workspace   where you run tests and tools (Python 3.12, pytest, ruff, psycopg)
+#   storefront  the storefront orders API, replayed for July and August 2026
+#   warehouse   the analytics warehouse (PostgreSQL 16)
+#
+# DE-1802 is yours: add the Airflow services to this file (a metadata database, a one-shot init, the
+# scheduler and the webserver), built from a Dockerfile you write at the top of the repository.
+# Credentials here are local-only development defaults. Your own values go in .env (never commit .env).
+name: fernhill-airflow
+
+x-lab-image: &lab-image
+  build:
+    context: .
+    dockerfile: .devcontainer/Dockerfile
+  init: true
+  user: vscode
+  working_dir: /workspace
+  volumes:
+    - .:/workspace:cached
+  networks: [lab]
+
+services:
+  workspace:
+    <<: *lab-image
+    command: ["sleep", "infinity"]
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      STOREFRONT_API_URL: http://storefront:8000
+      WAREHOUSE_URL: postgresql://fernhill:fernhill@warehouse:5432/warehouse
+    depends_on:
+      storefront:
+        condition: service_healthy
+      warehouse:
+        condition: service_healthy
+
+  storefront:
+    <<: *lab-image
+    # Writes the 3PL drops and customer extracts to data/ the first time, then serves the orders API.
+    command: ["python", "-m", "fernhill_source", "serve", "--port", "8000"]
+    environment:
+      # Empty until you rotate the token (DE-1826): then only the value in your .env is accepted.
+      STOREFRONT_API_TOKEN: ${STOREFRONT_API_TOKEN:-}
+      # Dates that answer 503, to replay the outage (DE-1821). For example 2026-08-12.
+      STOREFRONT_OUTAGE_DATES: ${STOREFRONT_OUTAGE_DATES:-}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    # Not published to your machine. To call it from your own terminal, uncomment (binds to localhost only):
+    # ports:
+    #   - "127.0.0.1:${STOREFRONT_PORT:-8000}:8000"
+
+  warehouse:
+    image: postgres:16.15-bookworm
+    environment:
+      POSTGRES_USER: fernhill
+      POSTGRES_PASSWORD: fernhill
+      POSTGRES_DB: warehouse
+    volumes:
+      - warehouse-data:/var/lib/postgresql/data
+    networks: [lab]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fernhill -d warehouse"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  warehouse-data:
+
+networks:
+  lab:

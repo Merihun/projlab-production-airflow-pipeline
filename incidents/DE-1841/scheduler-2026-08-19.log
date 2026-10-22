@@ -1,0 +1,28 @@
+# Scheduler log, production stack, 19 August 2026. Times are UTC (London is UTC+1 in August).
+# Trimmed to the fernhill_nightly DAG; heartbeat and DAG-processing lines removed.
+[2026-08-18T16:58:44.120+0000] {scheduler_job_runner.py:261} INFO - Exiting gracefully upon receiving signal 15
+[2026-08-18T16:59:31.507+0000] {scheduler_job_runner.py:935} INFO - Starting the scheduler (image ghcr.io/fernhill/fernhill-airflow:7be41c9a)
+[2026-08-19T00:00:00.498+0000] {dagrun.py:854} INFO - Created DagRun fernhill_nightly @ 2026-08-18T00:00:00+00:00: scheduled__2026-08-18T00:00:00+00:00, state: running, data interval 2026-08-18T00:00:00+00:00 to 2026-08-19T00:00:00+00:00
+[2026-08-19T00:00:01.033+0000] {scheduler_job_runner.py:447} INFO - 3 tasks up for execution: extract_orders_api, ingest_3pl_drops, customers_incremental [scheduled__2026-08-18T00:00:00+00:00]
+[2026-08-19T00:02:17.250+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=fernhill_nightly, task_id=ingest_3pl_drops, run_id=scheduled__2026-08-18T00:00:00+00:00, try_number=1
+[2026-08-19T00:03:02.901+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=fernhill_nightly, task_id=extract_orders_api, run_id=scheduled__2026-08-18T00:00:00+00:00, try_number=1
+[2026-08-19T00:06:28.377+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=fernhill_nightly, task_id=customers_incremental, run_id=scheduled__2026-08-18T00:00:00+00:00, try_number=1
+[2026-08-19T00:06:41.115+0000] {logging_mixin.py:190} INFO - [snapshot_customers scheduled__2026-08-18T00:00:00+00:00] snapshot_customers: inserted 2702 rows for 2026-08-18
+[2026-08-19T00:06:41.642+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=fernhill_nightly, task_id=snapshot_customers, run_id=scheduled__2026-08-18T00:00:00+00:00, try_number=1
+[2026-08-19T00:07:03.210+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=fernhill_nightly, task_id=quality_gate, run_id=scheduled__2026-08-18T00:00:00+00:00, try_number=1
+[2026-08-19T00:21:39.884+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=fernhill_nightly, task_id=dbt_build, run_id=scheduled__2026-08-18T00:00:00+00:00, try_number=1
+[2026-08-19T00:21:40.306+0000] {dagrun.py:823} INFO - Marking run <DagRun fernhill_nightly @ 2026-08-18T00:00:00+00:00: scheduled__2026-08-18T00:00:00+00:00, state:running> successful
+# Note added by the incident lead, 07:48 UTC: 3PL partner re-sent corrected files for 2026-08-16, 2026-08-17 and 2026-08-18 (ticket OPS-3310). Runbook section "Re-sent files": rerun the affected dates.
+[2026-08-19T08:09:55.731+0000] {backfill_job_runner.py:986} INFO - Backfill started by CLI: airflow dags backfill fernhill_nightly -s 2026-08-16 -e 2026-08-18 --reset-dagruns
+[2026-08-19T08:09:56.210+0000] {dagrun.py:854} INFO - Created DagRun fernhill_nightly @ 2026-08-16T00:00:00+00:00: backfill__2026-08-16T00:00:00+00:00, state: running, data interval 2026-08-16T00:00:00+00:00 to 2026-08-17T00:00:00+00:00
+[2026-08-19T08:11:40.008+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=fernhill_nightly, task_id=customers_incremental, run_id=backfill__2026-08-16T00:00:00+00:00, try_number=1
+[2026-08-19T08:12:07.324+0000] {logging_mixin.py:190} INFO - [snapshot_customers backfill__2026-08-16T00:00:00+00:00] snapshot_customers: inserted 2678 rows for 2026-08-16
+[2026-08-19T08:12:07.811+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=fernhill_nightly, task_id=snapshot_customers, run_id=backfill__2026-08-16T00:00:00+00:00, try_number=1
+[2026-08-19T08:12:31.090+0000] {dagrun.py:854} INFO - Created DagRun fernhill_nightly @ 2026-08-17T00:00:00+00:00: backfill__2026-08-17T00:00:00+00:00, state: running, data interval 2026-08-17T00:00:00+00:00 to 2026-08-18T00:00:00+00:00
+[2026-08-19T08:13:07.402+0000] {logging_mixin.py:190} INFO - [snapshot_customers backfill__2026-08-17T00:00:00+00:00] snapshot_customers: inserted 2693 rows for 2026-08-17
+[2026-08-19T08:13:07.930+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=fernhill_nightly, task_id=snapshot_customers, run_id=backfill__2026-08-17T00:00:00+00:00, try_number=1
+[2026-08-19T08:13:29.655+0000] {dagrun.py:854} INFO - Created DagRun fernhill_nightly @ 2026-08-18T00:00:00+00:00: backfill__2026-08-18T00:00:00+00:00, state: running, data interval 2026-08-18T00:00:00+00:00 to 2026-08-19T00:00:00+00:00
+[2026-08-19T08:14:07.288+0000] {logging_mixin.py:190} INFO - [snapshot_customers backfill__2026-08-18T00:00:00+00:00] snapshot_customers: inserted 2702 rows for 2026-08-18
+[2026-08-19T08:14:07.770+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=fernhill_nightly, task_id=snapshot_customers, run_id=backfill__2026-08-18T00:00:00+00:00, try_number=1
+[2026-08-19T08:31:52.143+0000] {backfill_job_runner.py:1003} INFO - Backfill done for DAG fernhill_nightly: 3 runs succeeded, 0 failed. All quality checks passed.
+# Note added by the incident lead, 10:40 UTC: Finance (P. Raman): customer counts by tier in the morning pack are roughly double for 16-18 August. Raised as DE-1841.

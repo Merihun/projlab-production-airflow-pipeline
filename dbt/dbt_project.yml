@@ -1,0 +1,7 @@
+name: fernhill
+version: "1.0"
+profile: fernhill
+model-paths: ["models"]
+models:
+  fernhill:
+    +materialized: table

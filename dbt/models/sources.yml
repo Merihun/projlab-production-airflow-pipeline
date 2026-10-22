@@ -1,0 +1,22 @@
+version: 2
+sources:
+  - name: wh
+    schema: wh
+    tables:
+      - name: orders
+      - name: fulfilment_events
+      - name: customer_history
+models:
+  - name: orders_by_day
+    description: Orders and revenue per load date. The 05:00 deadline (DE-1825) is about this table having yesterday.
+    columns:
+      - name: load_date
+        data_tests: [unique, not_null]
+  - name: fulfilment_by_day
+    columns:
+      - name: load_date
+        data_tests: [not_null]
+  - name: customers_current
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]

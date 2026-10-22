@@ -1,0 +1,26 @@
+# Secrets and local overrides: never commit these.
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+
+# Airflow and dbt output
+logs/
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+
+# The practice data is generated (python -m fernhill_source generate); files your pipeline moves aside too.
+data/*
+!data/.gitkeep
+dead_letter/
+
+# OS junk
+.DS_Store
+Thumbs.db

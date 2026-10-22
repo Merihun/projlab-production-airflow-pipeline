@@ -1,0 +1,39 @@
+commit 7be41c9a0d3f5e6b8c2a1d4f9e0b7c6a5d4e3f21
+Author: Platform squad <platform@fernhill.example>
+Date:   Tue Aug 18 16:52:10 2026 +0100
+
+    perf(snapshots): skip the DELETE before the insert
+
+    The nightly run only ever loads a new snapshot_date, so the DELETE finds
+    nothing and costs a scan of the whole table (38 s of the task's 51 s).
+    Removed it, and the explicit transaction that was only there for it.
+
+    Reviewed-by: 1 approval. CI: lint, dag-integrity, tests green.
+
+diff --git a/fernhill/pipeline/snapshots.py b/fernhill/pipeline/snapshots.py
+index 3c1f0aa..9d27e54 100644
+--- a/fernhill/pipeline/snapshots.py
++++ b/fernhill/pipeline/snapshots.py
+@@ -7,8 +7,6 @@
+ 
+ import psycopg
+ 
+-DELETE_SQL = "DELETE FROM wh.customer_snapshots_daily WHERE snapshot_date = %(ds)s::date"
+-
+ SNAPSHOT_SQL = """
+ INSERT INTO wh.customer_snapshots_daily (snapshot_date, customer_id, tier, country, loaded_at)
+ SELECT %(ds)s::date, customer_id, tier, country, now()
+@@ -21,11 +19,9 @@
+ def snapshot_customers(ds, conn=None):
+     """Write the snapshot for ``ds``. Returns the number of rows written."""
+     own = conn is None
+-    conn = conn or psycopg.connect(os.environ["WAREHOUSE_URL"])
++    conn = conn or psycopg.connect(os.environ["WAREHOUSE_URL"], autocommit=True)
+     try:
+-        with conn.transaction():
+-            conn.execute(DELETE_SQL, {"ds": ds})
+-            written = conn.execute(SNAPSHOT_SQL, {"ds": ds}).rowcount
++        written = conn.execute(SNAPSHOT_SQL, {"ds": ds}).rowcount
+     finally:
+         if own:
+             conn.close()

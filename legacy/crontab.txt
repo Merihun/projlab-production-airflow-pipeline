@@ -1,0 +1,13 @@
+# etl-vm-01, user etl. This is what DE-1800 replaces. Times are the VM's (Europe/London).
+# m  h  dom mon dow  command
+  0  1  *   *   *    cd /opt/fernhill && python -m fernhill.pipeline.orders   >> /var/log/fernhill/orders.log 2>&1
+ 20  1  *   *   *    cd /opt/fernhill && python ingest_3pl.py                 >> /var/log/fernhill/3pl.log 2>&1
+ 40  1  *   *   *    cd /opt/fernhill && python reload_customers.py           >> /var/log/fernhill/customers.log 2>&1
+  0  3  *   *   *    cd /opt/fernhill/dbt && dbt build                        >> /var/log/fernhill/dbt.log 2>&1
+#
+# Known problems (from the DE-1800 epic):
+# - Nothing checks the exit codes. dbt runs at 03:00 whether or not the loads worked.
+# - Every script works out "yesterday" from the clock, so a late or repeated run loads the wrong day or loads it twice.
+# - orders appends. A rerun in July doubled that day's revenue.
+# - ingest_3pl.py and reload_customers.py were never in version control and are not recoverable: rebuild them
+#   from the tickets (DE-1813, DE-1822, DE-1834).
